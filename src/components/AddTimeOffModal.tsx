@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Modal } from "./Modal";
 import { IdentityPicker } from "./IdentityPicker";
+import { PersonAvatar } from "./PersonAvatar";
 import { useIdentity } from "@/lib/identity";
 import { useTimeOff } from "@/lib/timeoff-client";
 import { todayISO } from "@/lib/dates";
@@ -21,13 +22,22 @@ export function AddTimeOffModal({
   const { employee, setIdentity } = useIdentity();
   const { addTimeOff, updateTimeOff } = useTimeOff();
 
+  const isEdit = Boolean(editing);
+
+  // New entries always re-confirm who they're for, even if someone's
+  // already identified on this device — cheap insurance against adding
+  // time off as whoever last used a shared computer. Edits skip this: the
+  // edit button only ever shows on your own entries already.
+  const [confirmed, setConfirmed] = useState(isEdit);
+  useEffect(() => {
+    if (open) setConfirmed(isEdit);
+  }, [open, isEdit]);
+
   const [startDate, setStartDate] = useState(editing?.startDate ?? todayISO());
   const [endDate, setEndDate] = useState(editing?.endDate ?? editing?.startDate ?? todayISO());
   const [note, setNote] = useState(editing?.note ?? "");
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
-
-  const isEdit = Boolean(editing);
 
   function resetAndClose() {
     setStartDate(todayISO());
@@ -59,12 +69,35 @@ export function AddTimeOffModal({
     }
   }
 
-  // Creating without a known identity yet: ask who they are first, then
-  // fall straight into the form below in the same modal.
-  if (!isEdit && !employee) {
+  if (!isEdit && !confirmed) {
     return (
-      <Modal open={open} onClose={resetAndClose} title="Who are you?" widthClass="max-w-lg">
-        <IdentityPicker onPick={(id) => setIdentity(id)} />
+      <Modal open={open} onClose={resetAndClose} title="Who's this time off for?" widthClass="max-w-lg">
+        <div className="space-y-5">
+          {employee && (
+            <button
+              onClick={() => setConfirmed(true)}
+              className="flex w-full items-center gap-3 rounded-xl border border-brand-amber/40 bg-brand-amber/10 px-4 py-3 text-left transition hover:bg-brand-amber/20"
+            >
+              <PersonAvatar employee={employee} />
+              <span className="text-sm text-white">
+                Continue as <span className="font-semibold">{employee.name}</span>
+              </span>
+            </button>
+          )}
+          <div>
+            {employee && (
+              <div className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500">
+                Or pick someone else
+              </div>
+            )}
+            <IdentityPicker
+              onPick={(id) => {
+                setIdentity(id);
+                setConfirmed(true);
+              }}
+            />
+          </div>
+        </div>
       </Modal>
     );
   }

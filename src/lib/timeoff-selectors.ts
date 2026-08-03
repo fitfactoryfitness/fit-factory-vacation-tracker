@@ -1,13 +1,13 @@
-import { getEmployee } from "./employees";
-import { addDays, daysInclusive, parseISODate, toISODate } from "./dates";
+import { addDays, parseISODate, toISODate, weekdaysInclusive } from "./dates";
 import type { Employee, TimeOff } from "./types";
 
 export type TimeOffWithEmployee = TimeOff & { employee: Employee };
 
 /** Attach the employee record, dropping any orphaned entries (e.g. someone removed from the roster). */
-export function withEmployee(entries: TimeOff[]): TimeOffWithEmployee[] {
+export function withEmployee(entries: TimeOff[], employees: Employee[]): TimeOffWithEmployee[] {
+  const byId = new Map(employees.map((e) => [e.id, e]));
   return entries.flatMap((entry) => {
-    const employee = getEmployee(entry.employeeId);
+    const employee = byId.get(entry.employeeId);
     return employee ? [{ ...entry, employee }] : [];
   });
 }
@@ -40,7 +40,7 @@ export function pastBefore<T extends TimeOff>(entries: T[], beforeIso: string): 
   return sortByStart(entries.filter((e) => e.endDate < beforeIso)).reverse();
 }
 
-/** Total days off booked for one employee within a given year, clipped to that year's bounds. */
+/** Total weekdays off booked for one employee within a given year (weekends don't count), clipped to that year's bounds. */
 export function daysUsedInYear(entries: TimeOff[], employeeId: string, year: number): number {
   const yearStart = toISODate(new Date(year, 0, 1));
   const yearEnd = toISODate(new Date(year, 11, 31));
@@ -50,7 +50,7 @@ export function daysUsedInYear(entries: TimeOff[], employeeId: string, year: num
     .reduce((total, e) => {
       const clippedStart = e.startDate < yearStart ? yearStart : e.startDate;
       const clippedEnd = e.endDate > yearEnd ? yearEnd : e.endDate;
-      return total + daysInclusive(clippedStart, clippedEnd);
+      return total + weekdaysInclusive(clippedStart, clippedEnd);
     }, 0);
 }
 

@@ -1,29 +1,5 @@
 import type { Employee, Team } from "./types";
 
-// The team roster. To add, rename, or remove someone, edit this list and
-// redeploy — there's no separate "manage employees" screen on purpose,
-// since this changes rarely and a fixed list keeps the rest of the app
-// (and the database) simple.
-export const EMPLOYEES: Employee[] = [
-  { id: "lucas", name: "Lucas", team: "leads" },
-  { id: "stephanie", name: "Stephanie", team: "leads" },
-
-  { id: "harley", name: "Harley", team: "frontdesk" },
-  { id: "kateryna", name: "Kateryna", team: "frontdesk" },
-  { id: "alexa", name: "Alexa", team: "frontdesk" },
-
-  { id: "stefan", name: "Stefan", team: "coaches" },
-  { id: "mikey", name: "Mikey", team: "coaches" },
-  { id: "amanda", name: "Amanda", team: "coaches" },
-  { id: "charlotte", name: "Charlotte", team: "coaches" },
-  { id: "adrian", name: "Adrian", team: "coaches" },
-  { id: "patrick", name: "Patrick", team: "coaches" },
-  { id: "kat", name: "Kat", team: "coaches" },
-  { id: "jenny", name: "Jenny", team: "coaches" },
-];
-
-export const EMPLOYEE_IDS = EMPLOYEES.map((e) => e.id);
-
 export const TEAM_LABELS: Record<Team, string> = {
   frontdesk: "Front Desk",
   leads: "Leads",
@@ -32,12 +8,15 @@ export const TEAM_LABELS: Record<Team, string> = {
 
 export const TEAM_ORDER: Team[] = ["leads", "frontdesk", "coaches"];
 
-const byId = new Map(EMPLOYEES.map((e) => [e.id, e]));
+// The team roster itself lives in the `employees` table (see
+// supabase/migrations/0002_employees.sql) so it can be edited from the
+// Team page without a redeploy — fetch it via useEmployees(). These
+// helpers just operate on whatever list you hand them.
 
-export function getEmployee(id: string): Employee | undefined {
-  return byId.get(id);
+export function getEmployee(employees: Employee[], id: string): Employee | undefined {
+  return employees.find((e) => e.id === id);
 }
 
-export function employeesByTeam(team: Team): Employee[] {
-  return EMPLOYEES.filter((e) => e.team === team);
+export function employeesByTeam(employees: Employee[], team: Team): Employee[] {
+  return employees.filter((e) => e.team === team);
 }

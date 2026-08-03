@@ -5,6 +5,7 @@ import { StatCard } from "@/components/StatCard";
 import { TimeOffRow } from "@/components/TimeOffRow";
 import { TeamBadge } from "@/components/TeamBadge";
 import { useTimeOff } from "@/lib/timeoff-client";
+import { useEmployees } from "@/lib/employees-client";
 import { addDays, todayISO, toISODate } from "@/lib/dates";
 import { TEAM_ORDER, employeesByTeam } from "@/lib/employees";
 import {
@@ -14,11 +15,14 @@ import {
 } from "@/lib/timeoff-selectors";
 
 export default function DashboardPage() {
-  const { entries, loading, error } = useTimeOff();
+  const { entries, loading: timeOffLoading, error: timeOffError } = useTimeOff();
+  const { employees, loading: employeesLoading, error: employeesError } = useEmployees();
+  const loading = timeOffLoading || employeesLoading;
+  const error = timeOffError ?? employeesError;
   const today = todayISO();
   const weekEnd = toISODate(addDays(new Date(), 7));
 
-  const enriched = useMemo(() => withEmployee(entries), [entries]);
+  const enriched = useMemo(() => withEmployee(entries, employees), [entries, employees]);
   const awayToday = useMemo(() => activeOn(enriched, today), [enriched, today]);
   const startingSoon = useMemo(
     () => startingWithin(enriched, today, weekEnd),
@@ -47,7 +51,7 @@ export default function DashboardPage() {
         <StatCard label="Starting within 7 days" value={startingSoon.length} accent="blue" />
         <StatCard
           label="Team size"
-          value={13}
+          value={employees.length}
           hint="Front Desk, Leads, Coaches"
           accent="neutral"
         />
@@ -59,7 +63,7 @@ export default function DashboardPage() {
         </h2>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {TEAM_ORDER.map((team) => {
-            const roster = employeesByTeam(team);
+            const roster = employeesByTeam(employees, team);
             const away = roster.filter((e) => awayTodayIds.has(e.id));
             const short = away.length > 0;
             return (

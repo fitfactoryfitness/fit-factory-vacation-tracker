@@ -4,7 +4,8 @@ import { useMemo, useState } from "react";
 import { useIdentity } from "@/lib/identity";
 import { useTimeOff } from "@/lib/timeoff-client";
 import { todayISO } from "@/lib/dates";
-import { daysUsedInYear, pastBefore, upcomingAfter, withEmployee } from "@/lib/timeoff-selectors";
+import { daysUsedInYear, pastBefore, upcomingAfter } from "@/lib/timeoff-selectors";
+import type { TimeOffWithEmployee } from "@/lib/timeoff-selectors";
 import { PersonAvatar } from "@/components/PersonAvatar";
 import { TeamBadge } from "@/components/TeamBadge";
 import { StatCard } from "@/components/StatCard";
@@ -19,8 +20,11 @@ export default function MyTimeOffPage() {
   const year = new Date().getFullYear();
   const [addOpen, setAddOpen] = useState(false);
 
-  const mine = useMemo(
-    () => withEmployee(entries.filter((e) => employee && e.employeeId === employee.id)),
+  const mine: TimeOffWithEmployee[] = useMemo(
+    () =>
+      employee
+        ? entries.filter((e) => e.employeeId === employee.id).map((e) => ({ ...e, employee }))
+        : [],
     [entries, employee]
   );
   const active = mine.filter((e) => e.startDate <= today && today <= e.endDate);
@@ -67,7 +71,7 @@ export default function MyTimeOffPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <StatCard label={`Days off in ${year}`} value={daysUsed} accent="amber" />
+        <StatCard label={`Weekdays off in ${year}`} value={daysUsed} accent="amber" />
         <StatCard label="Away right now" value={active.length > 0 ? "Yes" : "No"} accent={active.length > 0 ? "green" : "neutral"} />
         <StatCard label="Upcoming trips" value={upcoming.length} accent="blue" />
       </div>

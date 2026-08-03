@@ -13,18 +13,26 @@ Gantt-style Calendar to see who's away at a glance.
   person grouped by team, with colored bars for each time-off span.
   Filter by team, navigate months, hover a bar for details.
 - **Team** (`/team`) — everyone's upcoming and past time off in one
-  scrollable list, with a running "days off this year" count per person.
-  Filter by team or search by name.
+  scrollable list, with a running "weekdays off this year" count per
+  person (weekends don't count toward the total). Filter by team or
+  search by name. Also where you add or remove team members.
 - **My Time Off** (`/my`) — pick your name once (see "Access model"
   below), then add, edit, or delete your own time off.
 
+On mobile, the four views live in a bottom tab bar instead of the top nav.
+
 ## Access model
 
-There are no passwords or accounts. The first time someone uses the app,
-they pick their name from a list (grouped by Leads / Front Desk /
-Coaches) and it's remembered on that device (`localStorage`). That
-identity is what gets attached to any time off they add, and it's what
-lets the "Edit"/"Delete" buttons show up on their own entries.
+There are no passwords or accounts. Anyone can pick any name from a list
+(grouped by Leads / Front Desk / Coaches) and it's remembered on that
+device (`localStorage`) — that's what attaches to any time off they add,
+and what shows the "Edit"/"Delete" buttons on their own entries.
+
+Adding a new time off entry always re-confirms who it's for — even if
+someone's already identified on that device — with a one-tap "Continue
+as {name}" shortcut plus the full picker if it's actually someone else.
+This is cheap insurance against adding time off as whoever last used a
+shared front-desk computer.
 
 This is intentionally lightweight, trust-based access for a small
 internal team — there's no server-side check preventing someone from
@@ -35,11 +43,10 @@ team, need real accountability), swap in Supabase Auth and add a
 
 ## Team roster
 
-The 13 people on the team are a fixed list in
-[src/lib/employees.ts](src/lib/employees.ts), not a database table — this
-changes rarely, and keeping it in code means one less table and no
-"manage employees" screen to build. **To add, rename, or remove someone,
-edit that file and redeploy.**
+The team roster lives in the `employees` table (added/removed from the
+Team page — no redeploy needed), not in code. Removing someone also
+deletes their time-off history (the UI warns you first) — see
+[supabase/migrations/0002_employees.sql](supabase/migrations/0002_employees.sql).
 
 ## Stack
 
@@ -52,8 +59,9 @@ edit that file and redeploy.**
   never holds a Supabase key — so there's no Row Level Security policy
   to get right for this app's trust model, it's simply unreachable from
   outside.
-- One table: `time_off` (see
-  [supabase/migrations/0001_init.sql](supabase/migrations/0001_init.sql)).
+- Two tables: `employees` and `time_off`, with a foreign key (`ON DELETE
+  CASCADE`) from the latter to the former — see
+  [supabase/migrations/](supabase/migrations/).
 
 ## Local setup
 
@@ -72,8 +80,9 @@ npm run dev                  # http://localhost:3200
    variables (for the deployed app) as `SUPABASE_URL` and
    `SUPABASE_SERVICE_ROLE_KEY`.
 4. Project → SQL Editor → run the contents of
-   [supabase/migrations/0001_init.sql](supabase/migrations/0001_init.sql).
-   That's the entire schema — one table.
+   [supabase/migrations/0001_init.sql](supabase/migrations/0001_init.sql),
+   then [supabase/migrations/0002_employees.sql](supabase/migrations/0002_employees.sql),
+   in that order. That's the entire schema — two tables.
 
 ## Deploying
 

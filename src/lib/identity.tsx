@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { getEmployee } from "./employees";
+import { useEmployees } from "./employees-client";
 import type { Employee } from "./types";
 
 const STORAGE_KEY = "fitfactory-vacation-tracker:identity";
@@ -21,6 +22,7 @@ type IdentityContextValue = {
 const IdentityContext = createContext<IdentityContextValue | null>(null);
 
 export function IdentityProvider({ children }: { children: ReactNode }) {
+  const { employees } = useEmployees();
   const [employeeId, setEmployeeId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -37,7 +39,7 @@ export function IdentityProvider({ children }: { children: ReactNode }) {
     setEmployeeId(null);
   };
 
-  const employee = employeeId ? getEmployee(employeeId) ?? null : null;
+  const employee = employeeId ? getEmployee(employees, employeeId) ?? null : null;
 
   return (
     <IdentityContext.Provider value={{ employee, setIdentity, clearIdentity }}>

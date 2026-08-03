@@ -3,8 +3,9 @@
 import { useMemo, useState } from "react";
 import clsx from "clsx";
 import { useTimeOff } from "@/lib/timeoff-client";
+import { useEmployees } from "@/lib/employees-client";
 import { daysInMonthArray, monthLabel, todayISO } from "@/lib/dates";
-import { EMPLOYEES, TEAM_LABELS, TEAM_ORDER } from "@/lib/employees";
+import { TEAM_LABELS, TEAM_ORDER, employeesByTeam } from "@/lib/employees";
 import { TEAM_STYLES } from "@/lib/colors";
 import type { Team, TimeOff } from "@/lib/types";
 import { PersonAvatar } from "@/components/PersonAvatar";
@@ -12,7 +13,9 @@ import { PersonAvatar } from "@/components/PersonAvatar";
 const CELL = "w-7 sm:w-8";
 
 export default function CalendarPage() {
-  const { entries, loading } = useTimeOff();
+  const { entries, loading: timeOffLoading } = useTimeOff();
+  const { employees, loading: employeesLoading } = useEmployees();
+  const loading = timeOffLoading || employeesLoading;
   const today = todayISO();
   const now = new Date();
 
@@ -120,15 +123,21 @@ export default function CalendarPage() {
                   className={clsx(
                     CELL,
                     "shrink-0 border-l border-bg-border py-1.5 text-center",
-                    d.isWeekend && "bg-bg-card/40",
+                    d.isWeekend && "bg-slate-500/15",
                     d.iso === today && "bg-brand-amber/10"
                   )}
                 >
-                  <div className="text-[10px] text-slate-500">{d.weekdayLabel}</div>
+                  <div className={clsx("text-[10px]", d.isWeekend ? "text-slate-600" : "text-slate-500")}>
+                    {d.weekdayLabel}
+                  </div>
                   <div
                     className={clsx(
                       "text-xs font-medium",
-                      d.iso === today ? "text-brand-amber" : "text-slate-300"
+                      d.iso === today
+                        ? "text-brand-amber"
+                        : d.isWeekend
+                          ? "text-slate-500"
+                          : "text-slate-300"
                     )}
                   >
                     {d.day}
@@ -143,7 +152,7 @@ export default function CalendarPage() {
                 <div className="sticky left-0 z-10 border-b border-bg-border bg-bg-card/60 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">
                   {TEAM_LABELS[team]}
                 </div>
-                {EMPLOYEES.filter((e) => e.team === team).map((employee) => {
+                {employeesByTeam(employees, team).map((employee) => {
                   const myEntries = entriesByEmployee.get(employee.id) ?? [];
                   return (
                     <div key={employee.id} className="flex border-b border-bg-border last:border-b-0">
@@ -167,7 +176,7 @@ export default function CalendarPage() {
                             className={clsx(
                               CELL,
                               "shrink-0 border-l border-bg-border py-2.5",
-                              d.isWeekend && !entry && "bg-bg-card/40",
+                              d.isWeekend && !entry && "bg-slate-500/15",
                               d.iso === today && "bg-brand-amber/5"
                             )}
                           >

@@ -9,6 +9,7 @@ import { useIdentity } from "@/lib/identity";
 import { PersonAvatar } from "./PersonAvatar";
 import { WhoAreYouModal } from "./WhoAreYouModal";
 import { AddTimeOffModal } from "./AddTimeOffModal";
+import { BottomNav } from "./BottomNav";
 
 const NAV_LINKS = [
   { href: "/", label: "Dashboard" },
@@ -26,7 +27,7 @@ export function TopBar() {
   return (
     <>
       <header className="sticky top-0 z-40 border-b border-bg-border bg-bg/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3 sm:px-6">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <Link href="/" className="flex items-center gap-3 shrink-0">
             <Image src="/logo-white.png" alt="Fit Factory" width={143} height={28} className="h-6 w-auto sm:h-7" />
             <span className="hidden text-sm font-semibold text-white sm:inline border-l border-bg-border pl-3">
@@ -34,7 +35,7 @@ export function TopBar() {
             </span>
           </Link>
 
-          <nav className="flex flex-1 items-center gap-1 overflow-x-auto">
+          <nav className="hidden flex-1 items-center gap-1 sm:flex">
             {NAV_LINKS.map((link) => {
               const active = pathname === link.href;
               return (
@@ -79,13 +80,15 @@ export function TopBar() {
 
       <button
         onClick={() => setAddOpen(true)}
-        className="fixed bottom-5 right-5 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-brand-amber text-bg shadow-lg shadow-black/40 transition hover:bg-amber-400 sm:hidden"
+        className="fixed bottom-20 right-5 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-brand-amber text-bg shadow-lg shadow-black/40 transition hover:bg-amber-400 sm:hidden"
         aria-label="Add time off"
       >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
           <path d="M12 5v14M5 12h14" strokeLinecap="round" />
         </svg>
       </button>
+
+      <BottomNav />
 
       <WhoAreYouModal open={whoAreYouOpen} onClose={() => setWhoAreYouOpen(false)} />
       <AddTimeOffModal open={addOpen} onClose={() => setAddOpen(false)} />

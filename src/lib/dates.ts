@@ -48,6 +48,19 @@ export function daysInclusive(start: string, end: string): number {
   return Math.round((e.getTime() - s.getTime()) / 86_400_000) + 1;
 }
 
+/** Same as daysInclusive, but Saturdays/Sundays don't count. */
+export function weekdaysInclusive(start: string, end: string): number {
+  let count = 0;
+  let d = parseISODate(start);
+  const endD = parseISODate(end);
+  while (d <= endD) {
+    const weekday = d.getDay();
+    if (weekday !== 0 && weekday !== 6) count++;
+    d = addDays(d, 1);
+  }
+  return count;
+}
+
 const MONTH_LABELS = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",

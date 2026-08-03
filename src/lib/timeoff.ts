@@ -1,12 +1,15 @@
 import { z } from "zod";
-import { EMPLOYEE_IDS } from "./employees";
 import type { TimeOff } from "./types";
 
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Expected YYYY-MM-DD");
 
 export const createTimeOffSchema = z
   .object({
-    employeeId: z.enum(EMPLOYEE_IDS as [string, ...string[]]),
+    // Not validated against the roster here — the `employees` table has a
+    // foreign key on time_off.employee_id, so an unknown id is rejected at
+    // the database level. The UI only ever sends a real id anyway (picked
+    // from the fetched list), this is just a safety net.
+    employeeId: z.string().min(1),
     startDate: isoDate,
     endDate: isoDate,
     note: z.string().trim().max(280).optional().nullable(),

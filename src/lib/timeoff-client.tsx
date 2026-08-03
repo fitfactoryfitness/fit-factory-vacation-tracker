@@ -8,6 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { readJson } from "./http";
 import type { TimeOff } from "./types";
 
 type NewTimeOff = {
@@ -34,14 +35,6 @@ type TimeOffContextValue = {
 };
 
 const TimeOffContext = createContext<TimeOffContextValue | null>(null);
-
-async function readJson(res: Response) {
-  const body = await res.json().catch(() => null);
-  if (!res.ok) {
-    throw new Error(body?.error ?? `Request failed (${res.status})`);
-  }
-  return body;
-}
 
 export function TimeOffProvider({ children }: { children: ReactNode }) {
   const [entries, setEntries] = useState<TimeOff[]>([]);
