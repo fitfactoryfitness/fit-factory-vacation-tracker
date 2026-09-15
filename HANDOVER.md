@@ -43,8 +43,10 @@ If nobody but Lucas has access to this Supabase project, the team's time-off his
 roster could be hard to recover once he leaves — this is worth prioritizing early, not last.
 
 ### 3. GitHub (where the code itself lives)
-Nothing you need to do unless you're editing code yourself. Lucas will move this repository
-into a Fit Factory GitHub organization — see the master handover plan.
+Done — this repository now lives at
+https://github.com/fitfactoryfitness/fit-factory-vacation-tracker, no longer tied to Lucas's
+personal account. You just need to be added as a member of the `fitfactoryfitness` GitHub
+organization if you'll ever edit code yourself.
 
 ## For whoever becomes the technical contact
 
